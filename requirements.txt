@@ -3,3 +3,5 @@ matplotlib
 torch==1.7.0
 biopython
 yapf
+h5py
+tqdm
