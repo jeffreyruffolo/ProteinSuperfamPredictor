@@ -2,3 +2,4 @@ project_venv/
 .vscode/
 data/
 *.pyc
+.DS_Store
