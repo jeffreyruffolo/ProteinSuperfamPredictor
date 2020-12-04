@@ -48,7 +48,7 @@ class ProteinDataset(torch.utils.data.Dataset):
         superfam = self.superfam_dict.setdefault(superfam.decode("utf-8"), 0)
 
         sequence = self.h5file['sequence'][index, :sequence_len]
-        sequence = F.one_hot(torch.tensor(sequence).long())
+        sequence = F.one_hot(torch.tensor(sequence).long(), 21)
 
         dist_mat = self.h5file['dist_mat'][index, :sequence_len, :sequence_len]
         dist_mat = torch.Tensor(dist_mat).type(dtype=torch.float)
