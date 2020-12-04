@@ -3,3 +3,5 @@ project_venv/
 data/
 *.pyc
 .DS_Store
+*.png
+*.torch
