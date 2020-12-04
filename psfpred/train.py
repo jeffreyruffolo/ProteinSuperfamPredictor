@@ -64,9 +64,6 @@ for i in tqdm(range(epochs)):
 
         train_loss += handle_batch()
 
-        if train_loss > 300:
-            break
-
     validation_loss = 0
     with torch.no_grad():
         model.eval()
@@ -82,9 +79,6 @@ for i in tqdm(range(epochs)):
                 return loss.item()
 
             validation_loss += handle_batch()
-
-            if validation_loss > 300:
-                break
 
     train_losses.append(train_loss / len(train_loader))
     validation_losses.append(validation_loss / len(validation_loader))
