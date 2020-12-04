@@ -1,7 +1,7 @@
 import torch
 import matplotlib.pyplot as plt
 
-from code.data import ProteinDataset
+from psfpred.dataset import ProteinDataset
 
 batch_size = 4
 train_split = 0.9

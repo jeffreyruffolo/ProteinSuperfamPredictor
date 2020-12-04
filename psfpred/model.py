@@ -151,12 +151,3 @@ class Model(torch.nn.Module):
         out = out.squeeze(-1).squeeze(-1)
 
         return out
-
-
-max_seq_len = 200
-seq_input = torch.zeros((1, 21, max_seq_len))
-dist_input = torch.zeros((1, 1, max_seq_len, max_seq_len))
-
-model_ = Model(max_seq_len=max_seq_len)
-model_(seq_input, dist_input)
-print()

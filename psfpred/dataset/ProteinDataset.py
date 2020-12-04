@@ -16,6 +16,8 @@ class ProteinDataset(torch.utils.data.Dataset):
             for i, sf in enumerate(set(self.h5file['superfam']))
         }
 
+        print()
+
     def __len__(self):
         return self.num_proteins
 
