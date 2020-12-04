@@ -4,19 +4,36 @@ import torch.nn.functional as F
 
 
 class ProteinDataset(torch.utils.data.Dataset):
-    def __init__(self, filename):
+    def __init__(self, filename, crop_size=100, num_classes=51):
         super(ProteinDataset, self).__init__()
 
         self.filename = filename
         self.h5file = h5py.File(filename, 'r')
         self.num_proteins = len(self.h5file['sequence_len'])
+        self.crop_size = crop_size
+        self.num_classes = num_classes
 
-        self.superfam_dict = {
-            sf: i
-            for i, sf in enumerate(set(self.h5file['superfam']))
+        superfam_list = list(
+            c.decode("utf-8") for c in self.h5file['superfam'])
+        self.superfam_freq_dict = {
+            sf: superfam_list.count(sf)
+            for sf in set(superfam_list)
         }
-
-        print()
+        if num_classes > 0:
+            top_n_superfams = [
+                sf for sf, _ in sorted(self.superfam_freq_dict.items(),
+                                       key=lambda item: item[1],
+                                       reverse=True)[:num_classes - 1]
+            ]
+            self.superfam_dict = {
+                sf: i + 1
+                for i, sf in enumerate(top_n_superfams)
+            }
+        else:
+            self.superfam_dict = {
+                sf: i
+                for i, sf in enumerate(set(superfam_list))
+            }
 
     def __len__(self):
         return self.num_proteins
@@ -27,13 +44,23 @@ class ProteinDataset(torch.utils.data.Dataset):
 
         superfam = self.h5file['superfam'][index]
         # superfam = torch.tensor(self.superfam_dict[superfam]).long()
-        superfam = self.superfam_dict[superfam]
+        # superfam = self.superfam_dict[superfam]
+        superfam = self.superfam_dict.setdefault(superfam.decode("utf-8"), 0)
 
         sequence = self.h5file['sequence'][index, :sequence_len]
         sequence = F.one_hot(torch.tensor(sequence).long())
 
         dist_mat = self.h5file['dist_mat'][index, :sequence_len, :sequence_len]
         dist_mat = torch.Tensor(dist_mat).type(dtype=torch.float)
+
+        if self.crop_size > 0:
+            crop_start = torch.randint(low=0,
+                                       high=max(sequence_len - self.crop_size,
+                                                1),
+                                       size=(1, )).item()
+            crop_end = min(sequence_len, crop_start + self.crop_size)
+            sequence = sequence[crop_start:crop_end]
+            dist_mat = dist_mat[crop_start:crop_end, crop_start:crop_end]
 
         return id, superfam, sequence, dist_mat
 
