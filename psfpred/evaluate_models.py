@@ -66,12 +66,12 @@ with torch.no_grad():
         model_6_preds.append(model_6(seq_inputs, dist_inputs).argmax(1))
         model_2_preds.append(model_2(seq_inputs, dist_inputs).argmax(1))
         model_sgd_preds.append(model_sgd(seq_inputs, dist_inputs).argmax(1))
-        model_seq_preds.append(model_seq(seq_inputs, dist_inputs).argmax(1))
-        model_dist_preds.append(model_dist(seq_inputs, dist_inputs).argmax(1))
+        model_seq_preds.append(
+            model_seq(seq_inputs, dist_inputs, dev=dev).argmax(1))
+        model_dist_preds.append(
+            model_dist(seq_inputs, dist_inputs, dev=dev).argmax(1))
 
         superfam_labels.append(superfam_labels_)
-
-        break
 
 superfam_labels = torch.cat(superfam_labels)
 model_10_preds = torch.cat(model_10_preds)
@@ -106,12 +106,12 @@ np.savetxt(os.path.join(out_dir, "results.csv"), res, delimiter=",", fmt="%s")
 for i in range(len(model_names)):
     fig, ax = plt.subplots(1, 1)
     ax.imshow(confusion_matrix(model_preds[i], superfam_labels)[1:, 1:])
-
+    fig.colorbar()
     plt.savefig(os.path.join(out_dir, "{}_50_cm.png".format(model_names[i])))
     plt.close()
 
     fig, ax = plt.subplots(1, 1)
     ax.imshow(confusion_matrix(model_preds[i], superfam_labels))
-
+    fig.colorbar()
     plt.savefig(os.path.join(out_dir, "{}_51_cm.png".format(model_names[i])))
     plt.close()
