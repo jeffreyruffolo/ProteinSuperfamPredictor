@@ -6,3 +6,4 @@ data/
 .DS_Store
 *.png
 *.torch
+training_runs/

@@ -5,3 +5,4 @@ biopython
 yapf
 h5py
 tqdm
+sklearn
