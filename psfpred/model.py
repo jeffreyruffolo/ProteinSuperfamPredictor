@@ -79,12 +79,19 @@ class ResBlock2D(torch.nn.Module):
 
 
 class Model(torch.nn.Module):
-    def __init__(self, max_seq_len=200, num_classes=(50 + 1)):
+    def __init__(self,
+                 max_seq_len=100,
+                 num_classes=(50 + 1),
+                 ignore_seq=False,
+                 ignore_dist=False):
         super(Model, self).__init__()
 
         num_aa_types = 21
         kernel_size_1d = 11
         kernel_size_2d = 5
+
+        self.ignore_seq = ignore_seq
+        self.ignore_dist = ignore_dist
 
         num_1d_blocks = 3
         self.seq_branch = torch.nn.Sequential(*[
@@ -135,14 +142,24 @@ class Model(torch.nn.Module):
             torch.nn.MaxPool2d(max_seq_len // (maxpool_kernel_size**2))
         ])
 
-    def forward(self, seq_input, dist_input):
-        out_1d = self.seq_branch(seq_input)
-        expand_out_1d = out_1d.unsqueeze(-1).expand(
-            (*out_1d.shape, out_1d.shape[-1]))
-        seq_out_2d = torch.cat(
-            [expand_out_1d, expand_out_1d.transpose(2, 3)], dim=1)
+    def forward(self, seq_input, dist_input, dev=None):
+        if not self.ignore_seq:
+            out_1d = self.seq_branch(seq_input)
+            expand_out_1d = out_1d.unsqueeze(-1).expand(
+                (*out_1d.shape, out_1d.shape[-1]))
+            seq_out_2d = torch.cat(
+                [expand_out_1d, expand_out_1d.transpose(2, 3)], dim=1)
+        else:
+            seq_out_2d = torch.zeros(
+                (seq_input.shape[0], seq_input.shape[1] * 2,
+                 seq_input.shape[-1], seq_input.shape[-1])).to(dev)
 
-        dist_out_2d = self.dist_branch(dist_input)
+        if not self.ignore_dist:
+            dist_out_2d = self.dist_branch(dist_input)
+        else:
+            dist_out_2d = torch.zeros(
+                (dist_input.shape[0], 22, dist_input.shape[-2],
+                 dist_input.shape[-2])).to(dev)
 
         main_input = torch.cat([seq_out_2d, dist_out_2d], dim=1)
         main_out = self.main_branch(main_input)
